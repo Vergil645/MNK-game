@@ -20,19 +20,24 @@ public class HumanPlayer implements Player {
     @Override
     public Move move(final Position position, final Cell cell) throws EOFException {
         while (true) {
-            out.println("Position");
-            out.println(position);
-            out.println(cell + "'s move");
-            out.println("Play up to " + position.getK() + " stones in row, column or diagonal");
-            out.println("Enter row and column");
+            out.format("Position%n");
+            out.format("%s%n", position);
+            out.format("Play up to %d stones in row, column or diagonal%n", position.getK());
+            out.format("%s's move%n", cell);
 
             StringBuilder message = new StringBuilder();
 
+            out.format("Enter row: ");
             int row = UnsignedIntChecker.next(in, message);
-            int col = UnsignedIntChecker.next(in, message);
-
             if (message.length() > 0) {
-                out.print("Input is invalid:\n" + message.toString());
+                out.format("Input is incorrect:%n%s", message.toString());
+                continue;
+            }
+
+            out.format("Enter column: ");
+            int col = UnsignedIntChecker.next(in, message);
+            if (message.length() > 0) {
+                out.format("Input is incorrect:%n%s", message.toString());
                 continue;
             }
 
@@ -41,7 +46,7 @@ public class HumanPlayer implements Player {
                 return move;
             }
 
-            out.println("Move " + move + " is invalid");
+            out.format("Move %s is incorrect%n", move);
         }
     }
 }

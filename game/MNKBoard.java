@@ -4,33 +4,39 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class MNKBoard implements Position, Board {
-    private static final Map<Cell, Character> SYMBOLS = Map.of(
+    protected static final Map<Cell, Character> SYMBOLS = Map.of(
             Cell.X, 'X',
             Cell.O, 'O',
             Cell.E, '.'
     );
 
-    private final int m, n, k;
-    private int empty;
-    private final Cell[][] cells;
-    private Cell turn;
+    protected final int m, n, k, cond;
+    protected int empty;
+    protected final Cell[][] cells;
+    protected Cell turn;
 
-    public MNKBoard(final int m, final int n, final int k) {
+    protected MNKBoard(int m, int n, int k, int cond, int empty, Cell turn) {
         this.m = m;
         this.n = n;
         this.k = k;
-        this.empty = n * m;
+        this.cond = cond;
+        this.empty = empty;
         this.cells = new Cell[n][m];
+        this.turn = turn;
+        for (Cell[] row : cells) {
+            Arrays.fill(row, Cell.UNUSED);
+        }
+    }
 
+    public MNKBoard(int m, int n, int k, int cond) {
+        this(m, n, k, cond, n * m, Cell.X);
         for (Cell[] row : cells) {
             Arrays.fill(row, Cell.E);
         }
-        turn = Cell.X;
     }
 
-    @Override
-    public Position getPosition() {
-        return new ProxyPosition(this);
+    public MNKBoard(int m, int n, int k) {
+        this(m, n, k, -1);
     }
 
     @Override
@@ -48,32 +54,47 @@ public class MNKBoard implements Position, Board {
         return k;
     }
 
-    public boolean isValid(final Move move) {
-        return move != null
-                && 0 <= move.getRow() && move.getRow() < n
-                && 0 <= move.getColumn() && move.getColumn() < m
-                && cells[move.getRow()][move.getColumn()] == Cell.E
-                && turn == move.getValue();
-    }
-
     @Override
     public Cell getCell(final int r, final int c) {
+        if (!isOnBoard(r, c)) {
+            throw new IndexOutOfBoundsException(String.format("Cell %d %d is not on the board%n", r, c));
+        }
         return cells[r][c];
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
+    public boolean isValid(final Move move) {
+        return move != null
+                && isOnBoard(move.getRow(), move.getColumn())
+                && cells[move.getRow()][move.getColumn()] == Cell.E
+                && turn == move.getValue();
+    }
 
+    protected boolean isOnBoard(final int row, final int col) {
+        return 0 <= row && row < n && 0 <= col && col < m;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("  ");
+
+        for (int c = 0; c < m; c++) {
+            sb.append(String.format(" %2d", c + 1));
+        }
         for (int r = 0; r < n; r++) {
-            if (r > 0) {
-                sb.append("\n");
-            }
+            sb.append("\n");
+            sb.append(String.format("%2d", r + 1));
             for (int c = 0; c < m; c++) {
-                sb.append(SYMBOLS.get(cells[r][c]));
+                sb.append("  ");
+                sb.append(cells[r][c] != Cell.UNUSED ? SYMBOLS.get(cells[r][c]) : " ");
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public Position getPosition() {
+        return new ProxyPosition(this);
     }
 
     @Override
@@ -90,10 +111,18 @@ public class MNKBoard implements Position, Board {
         cells[move.getRow()][move.getColumn()] = move.getValue();
         empty--;
 
-        if (check(move, -1, 0) + check(move, 1, 0) - 1 >= k // vertical line
-            || check(move, 0, -1) + check(move, 0, 1) - 1 >= k // horizontal line
-            || check(move, -1, -1) + check(move, 1, 1) - 1 >= k // main diagonal
-            || check(move, -1, 1) + check(move, 1, -1) - 1 >= k) { // secondary diagonal
+        int stonesInLine = Math.max(
+            Math.max(
+                check(move, -1, 0) + check(move, 1, 0) - 1,
+                check(move, 0, -1) + check(move, 0, 1) - 1
+            ),
+            Math.max(
+                check(move, -1, -1) + check(move, 1, 1) - 1,
+                check(move, -1, 1) + check(move, 1, -1) - 1
+            )
+        );
+
+        if (stonesInLine >= k) {
             return Result.WIN;
         }
 
@@ -101,16 +130,20 @@ public class MNKBoard implements Position, Board {
             return Result.DRAW;
         }
 
+        if (cond != -1 && stonesInLine >= cond) {
+            return Result.ADDITIONAL_TURN;
+        }
+
         turn = turn == Cell.X ? Cell.O : Cell.X;
         return Result.UNKNOWN;
     }
 
-    private int check(final Move move, final int drow, final int dcol) {
+    protected int check(final Move move, final int drow, final int dcol) {
         int cnt = 0;
         int r = move.getRow();
         int c = move.getColumn();
 
-        while (0 <= r && r < n && 0 <= c && c < m && cells[r][c] == cells[move.getRow()][move.getColumn()]) {
+        while (isOnBoard(r, c) && cells[r][c] == cells[move.getRow()][move.getColumn()]) {
             cnt++;
             r += drow;
             c += dcol;

@@ -7,9 +7,9 @@ public interface Position {
 
     int getK();
 
-    boolean isValid(Move move);
-
     Cell getCell(int r, int c);
+
+    boolean isValid(Move move);
 
     String toString();
 }
