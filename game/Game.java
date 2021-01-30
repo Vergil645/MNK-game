@@ -1,7 +1,5 @@
 package game;
 
-import java.io.EOFException;
-
 public class Game {
     private final boolean log;
     private final Player player1, player2;
@@ -10,9 +8,19 @@ public class Game {
         this.log = log;
         this.player1 = player1;
         this.player2 = player2;
+
+        if (player1 == null) {
+            throw new RuntimeException("There isn't player 1, game can not be started");
+        }
+
+        if (player2 == null) {
+            throw new RuntimeException("There isn't player 2, game can not be started");
+        }
     }
 
-    public int play(final Board board) throws EOFException {
+    public int play(final Board board) {
+        checkBoard(board);
+
         while (true) {
             final int result1 = move(board, player1, 1);
             if (result1 >= 0) {
@@ -26,7 +34,9 @@ public class Game {
         }
     }
 
-    public int playWithAddTurn(final Board board) throws EOFException {
+    public int playWithAddMove(final Board board) {
+        checkBoard(board);
+
         while (true) {
             int result;
 
@@ -46,9 +56,21 @@ public class Game {
         }
     }
 
-    private int move(final Board board, final Player player, final int no) throws EOFException {
+    private void checkBoard(final Board board) {
+        if (board == null) {
+            throw new RuntimeException("There is no board");
+        }
+    }
+
+    private int move(final Board board, final Player player, final int no) {
         final Move move = player.move(board.getPosition(), board.getTurn());
-        final Result result = board.makeMove(move);
+        final Result result;
+
+        try {
+            result = board.makeMove(move);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(String.format("Player %d move is null - it is not possible", no));
+        }
 
         log(String.format("Player %d move: %s", no, move));
         log(String.format("Position:%n%s", board));
@@ -65,7 +87,7 @@ public class Game {
         } else if (result == Result.UNKNOWN) {
             log("Unknown");
             return -1;
-        } else if (result == Result.ADDITIONAL_TURN) {
+        } else if (result == Result.ADDITIONAL_MOVE) {
             log(String.format("Additional move of player %d", no));
             return -2;
         } else {

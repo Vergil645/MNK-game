@@ -25,6 +25,6 @@ public final class Move {
 
     @Override
     public String toString() {
-        return "row=" + (row + 1) + ", column=" + (column + 1) + ", value=" + value;
+        return String.format("row=%d, column=%d, value=%s", row + 1, column + 1, value);
     }
 }

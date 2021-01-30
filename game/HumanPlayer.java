@@ -1,6 +1,5 @@
 package game;
 
-import java.io.EOFException;
 import java.io.PrintStream;
 import java.util.Scanner;
 
@@ -18,7 +17,7 @@ public class HumanPlayer implements Player {
     }
 
     @Override
-    public Move move(final Position position, final Cell cell) throws EOFException {
+    public Move move(final Position position, final Cell cell) {
         while (true) {
             out.format("Position%n");
             out.format("%s%n", position);
@@ -27,15 +26,10 @@ public class HumanPlayer implements Player {
 
             StringBuilder message = new StringBuilder();
 
-            out.format("Enter row: ");
+            out.format("Enter row and column: ");
             int row = UnsignedIntChecker.next(in, message);
-            if (message.length() > 0) {
-                out.format("Input is incorrect:%n%s", message.toString());
-                continue;
-            }
-
-            out.format("Enter column: ");
             int col = UnsignedIntChecker.next(in, message);
+
             if (message.length() > 0) {
                 out.format("Input is incorrect:%n%s", message.toString());
                 continue;

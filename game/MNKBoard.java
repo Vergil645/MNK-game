@@ -4,16 +4,16 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class MNKBoard implements Position, Board {
-    protected static final Map<Cell, Character> SYMBOLS = Map.of(
+    private static final Map<Cell, Character> SYMBOLS = Map.of(
             Cell.X, 'X',
             Cell.O, 'O',
             Cell.E, '.'
     );
 
-    protected final int m, n, k, cond;
-    protected int empty;
+    private final int m, n, k, cond;
+    private int empty;
     protected final Cell[][] cells;
-    protected Cell turn;
+    private Cell turn;
 
     protected MNKBoard(int m, int n, int k, int cond, int empty, Cell turn) {
         this.m = m;
@@ -36,7 +36,7 @@ public class MNKBoard implements Position, Board {
     }
 
     public MNKBoard(int m, int n, int k) {
-        this(m, n, k, -1);
+        this(m, n, k, 2 * k);
     }
 
     @Override
@@ -64,14 +64,13 @@ public class MNKBoard implements Position, Board {
 
     @Override
     public boolean isValid(final Move move) {
-        return move != null
-                && isOnBoard(move.getRow(), move.getColumn())
+        return isOnBoard(move.getRow(), move.getColumn())
                 && cells[move.getRow()][move.getColumn()] == Cell.E
                 && turn == move.getValue();
     }
 
     protected boolean isOnBoard(final int row, final int col) {
-        return 0 <= row && row < n && 0 <= col && col < m;
+        return 0 <= row && row < n && 0 <= col && col < m && cells[row][col] != Cell.UNUSED;
     }
 
     @Override
@@ -85,8 +84,7 @@ public class MNKBoard implements Position, Board {
             sb.append("\n");
             sb.append(String.format("%2d", r + 1));
             for (int c = 0; c < m; c++) {
-                sb.append("  ");
-                sb.append(cells[r][c] != Cell.UNUSED ? SYMBOLS.get(cells[r][c]) : " ");
+                sb.append(String.format("  %s", cells[r][c] != Cell.UNUSED ? SYMBOLS.get(cells[r][c]) : " "));
             }
         }
         return sb.toString();
@@ -104,6 +102,10 @@ public class MNKBoard implements Position, Board {
 
     @Override
     public Result makeMove(final Move move) {
+        if (move == null) {
+            throw new RuntimeException("Player's move is null - it is not possible");
+        }
+
         if (!isValid(move)) {
             return Result.LOSE;
         }
@@ -130,8 +132,8 @@ public class MNKBoard implements Position, Board {
             return Result.DRAW;
         }
 
-        if (cond != -1 && stonesInLine >= cond) {
-            return Result.ADDITIONAL_TURN;
+        if (stonesInLine >= cond) {
+            return Result.ADDITIONAL_MOVE;
         }
 
         turn = turn == Cell.X ? Cell.O : Cell.X;

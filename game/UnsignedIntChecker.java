@@ -1,10 +1,9 @@
 package game;
 
-import java.io.EOFException;
 import java.util.Scanner;
 
 public class UnsignedIntChecker {
-    public static int next(final Scanner in, final StringBuilder message) throws EOFException {
+    public static int next(final Scanner in, final StringBuilder message) {
         if (checkInt(in)) {
             int var = in.nextInt();
             if (var < 0) {
@@ -17,9 +16,9 @@ public class UnsignedIntChecker {
         }
     }
 
-    private static boolean checkInt(final Scanner in) throws EOFException {
+    private static boolean checkInt(final Scanner in) {
         if (!in.hasNext()) {
-            throw new EOFException("Unexpected end of input was reached");
+            throw new RuntimeException("Unexpected end of input was reached");
         }
         return in.hasNextInt();
     }

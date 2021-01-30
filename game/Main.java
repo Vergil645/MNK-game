@@ -1,47 +1,50 @@
 package game;
 
-import java.io.EOFException;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         try {
             final Game game = new Game(true,
-                    new RandomPlayer(),
-                    new HumanPlayer()
+                    new HumanPlayer(),
+                    new RandomPlayer()
             );
 
-            System.out.format("Game result: %s%n", game.playWithAddTurn(new RhombusBoard(7, 6, 4)));
+            Scanner in = new Scanner(System.in);
+            while (true) {
+                System.out.println("Enter n (edge), k and p");
+                StringBuilder message = new StringBuilder();
 
-            /*
-            try (Scanner in = new Scanner(System.in)) {
-                while (true) {
-                    System.out.println("Enter m (column count), n (row count), k");
-                    StringBuilder message = new StringBuilder();
+                int n = UnsignedIntChecker.next(in, message);
+                int k = UnsignedIntChecker.next(in, message);
+                int p = UnsignedIntChecker.next(in, message);
 
-                    int m = UnsignedIntChecker.next(in, message);
-                    int n = UnsignedIntChecker.next(in, message);
-                    int k = UnsignedIntChecker.next(in, message);
-
-                    if (message.length() > 0) {
-                        System.out.println("Input is invalid:");
-                        System.out.println(message.toString());
-                        continue;
-                    }
-
-                    if (m == 0 || n == 0 || k == 0 || k > Math.max(m, n)) {
-                        System.out.println("Input values are incorrect");
-                        continue;
-                    }
-
-                    System.out.println("Game result: " + game.play(new MNKBoard(m, n, k)));
-                    break;
+                if (message.length() > 0) {
+                    System.out.println("Input is invalid:");
+                    System.out.println(message.toString());
+                    continue;
                 }
-            } catch (EOFException e) {
-                System.out.println(e.getMessage());
+
+                if (n == 0) {
+                    System.out.println("Input values are incorrect: n will be greater than 0");
+                    continue;
+                }
+
+                if (k == 0) {
+                    System.out.println("Input values are incorrect: k will be greater than 0");
+                    continue;
+                }
+
+                if (k > 2 * n - 1) {
+                    System.out.println("Input values are incorrect: k stones in line can not be reach - k is greater than 2n-1");
+                    continue;
+                }
+
+                System.out.println("Game result: " + game.playWithAddMove(new RhombusBoard(n, k, p)));
+                break;
             }
-             */
-        } catch (EOFException e) {
-            System.out.format("EOF error: %s%n", e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.format("Game error: %s%n", e.getMessage());
         }
     }
 }
